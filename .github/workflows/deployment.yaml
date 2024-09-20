@@ -6,7 +6,8 @@ on:
     branches:
       - "develop"
       - "staging"
-      - "master"          
+      - "master"  
+      - "production"        
 
 jobs:
   deploy:
