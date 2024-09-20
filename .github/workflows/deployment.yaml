@@ -26,9 +26,21 @@ jobs:
           environment-url: http://my-app-url.com
           environment: ${{github.ref_name}}
 
+
+
+      - name: jira-keys  
+        id: jira-keys
+        if: always()
+        uses: HighwayThree/jira-extract-issue-keys@master
+        with:
+            is-pull-request: ${{ github.event_name == 'pull_request' }}
+            parse-all-commits: ${{ github.event_name == 'push' }}
+                           
       - name: Deploy my app
         run: |
           echo "Deploying my app"
+          echo '${{ env.JIRA_KEYS }}'
+          echo "====================="
 
       - name: Update deployment status (success)
         if: success()
