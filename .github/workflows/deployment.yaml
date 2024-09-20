@@ -24,7 +24,7 @@ jobs:
         with:
           token: ${{secrets.REPO_ACCESS_TOKEN}}
           environment-url: http://my-app-url.com
-          environment: develop
+          environment: ${{github.ref_name}}
 
       - name: Deploy my app
         run: |
