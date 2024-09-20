@@ -1,0 +1,16 @@
+name: Deploy
+
+on: [push]
+
+jobs:
+  deploy:
+    name: Deploy my app
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Deploy my app
+        run: |
+          echo "Deploying my APP........."
