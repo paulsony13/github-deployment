@@ -2,11 +2,6 @@ name: Deploy
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - "develop"
-      - "staging"
-      - "master"
   push:
     branches:
       - "develop"
@@ -23,6 +18,32 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
+      - uses: chrnorm/deployment-action@v2
+        name: Create GitHub deployment
+        id: deployment
+        with:
+          token: '${{ github.token }}'
+          environment-url: http://my-app-url.com
+          environment: production
+
       - name: Deploy my app
         run: |
-          echo "Deploying my APP........."
+          echo "Deploying my app"
+
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ github.token }}'
+          environment-url: ${{ steps.deployment.outputs.environment_url }}
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          state: 'success'
+
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ github.token }}'
+          environment-url: ${{ steps.deployment.outputs.environment_url }}
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          state: 'failure'
