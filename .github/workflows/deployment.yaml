@@ -40,7 +40,7 @@ jobs:
       - name: Deploy my app
         run: |
           echo "Deploying my app"
-          echo "Jira keys: ${{ steps.jira-keys.outputs.issue_keys }}"
+          echo "Jira keys: ${{ steps.jira-keys.outputs.jira_keys }}"
           echo "====================="
 
       # Step 5: Update deployment status to success
