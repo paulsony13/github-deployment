@@ -8,7 +8,6 @@ on:
       - "staging"
       - "master"          
 
- 
 
 jobs:
   deploy:
