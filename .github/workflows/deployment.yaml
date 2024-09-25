@@ -6,59 +6,64 @@ on:
     branches:
       - "develop"
       - "staging"
-      - "master"          
+      - "master"  
+      - "production"        
 
 jobs:
   deploy:
     name: Deploy my app
-
+    environment:
+      name: ${{ 
+        endsWith(github.ref, '/master') && 'production' ||
+        endsWith(github.ref, '/staging') && 'staging' ||
+        endsWith(github.ref, '/develop') && 'develop' }}    
     runs-on: ubuntu-latest 
 
     steps:
       # Step 1: Checkout the code
       - uses: actions/checkout@v4
 
-      # Step 2: Create GitHub deployment
-      - uses: chrnorm/deployment-action@v2
-        name: Create GitHub deployment
-        id: deployment
-        with:
-          token: ${{secrets.REPO_ACCESS_TOKEN}}
-          environment-url: http://my-app-url.com
-          environment: ${{github.ref_name}}
+      # # Step 2: Create GitHub deployment
+      # - uses: chrnorm/deployment-action@v2
+      #   name: Create GitHub deployment
+      #   id: deployment
+      #   with:
+      #     token: ${{secrets.REPO_ACCESS_TOKEN}}
+      #     environment-url: http://my-app-url.com
+      #     environment: ${{github.ref_name}}
 
-      # Step 3: Extract Jira keys from commits
-      - name: Extract Jira keys  
-        id: jira-keys
-        if: always()  # Run this step always
-        uses: HighwayThree/jira-extract-issue-keys@master
-        with:
-          is-pull-request: ${{ github.event_name == 'pull_request' }}
-          parse-all-commits: ${{ github.event_name == 'push' }}
+      # # Step 3: Extract Jira keys from commits
+      # - name: Extract Jira keys  
+      #   id: jira-keys
+      #   if: always()  # Run this step always
+      #   uses: HighwayThree/jira-extract-issue-keys@master
+      #   with:
+      #     is-pull-request: ${{ github.event_name == 'pull_request' }}
+      #     parse-all-commits: ${{ github.event_name == 'push' }}
         
       # Step 4: Deploy the app
       - name: Deploy my app
         run: |
           echo "Deploying my app"
-          echo "Jira keys: ${{ steps.jira-keys.outputs.issue_keys }}"
+          echo "Jira keys: ${{ steps.jira-keys.outputs.jira_keys }}"
           echo "====================="
 
-      # Step 5: Update deployment status to success
-      - name: Update deployment status (success)
-        if: success()
-        uses: chrnorm/deployment-status@v2
-        with:
-          token: ${{secrets.REPO_ACCESS_TOKEN}}
-          environment-url: ${{ steps.deployment.outputs.environment_url }}
-          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
-          state: 'success'
+      # # Step 5: Update deployment status to success
+      # - name: Update deployment status (success)
+      #   if: success()
+      #   uses: chrnorm/deployment-status@v2
+      #   with:
+      #     token: ${{secrets.REPO_ACCESS_TOKEN}}
+      #     environment-url: ${{ steps.deployment.outputs.environment_url }}
+      #     deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+      #     state: 'success'
 
-      # Step 6: Update deployment status to failure
-      - name: Update deployment status (failure)
-        if: failure()
-        uses: chrnorm/deployment-status@v2
-        with:
-          token: ${{secrets.REPO_ACCESS_TOKEN}}
-          environment-url: ${{ steps.deployment.outputs.environment_url }}
-          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
-          state: 'failure'
+      # # Step 6: Update deployment status to failure
+      # - name: Update deployment status (failure)
+      #   if: failure()
+      #   uses: chrnorm/deployment-status@v2
+      #   with:
+      #     token: ${{secrets.REPO_ACCESS_TOKEN}}
+      #     environment-url: ${{ steps.deployment.outputs.environment_url }}
+      #     deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+      #     state: 'failure'
