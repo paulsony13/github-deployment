@@ -163,6 +163,9 @@ jobs:
 
   auto-approve-stage-2:
     if: startsWith(github.event.inputs.environment, 'production')
+    needs:
+      - deploy-packages
+      - validate-flex-account
     name: Auto approve job 2
     runs-on: ubuntu-latest
     steps:
