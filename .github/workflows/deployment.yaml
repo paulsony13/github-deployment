@@ -96,19 +96,7 @@ jobs:
       ENVIRONMENT: ${{ inputs.environment }}
     steps:
 
-      - name: Auto approve
-        shell: pwsh
-        run: |        
-          $url = "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/pending_deployments";
-          $body = @"
-          { "environment_ids": [ ${{ needs.validate-flex-account.outputs.environment_id }} ],
-            "state": "approved",
-            "comment": "Auto-approved for automation"
-          }
-          "@;
-          Invoke-RESTMethod -Uri $url -Method POST -Headers @{
-            Authorization = "Bearer ${{ secrets.REPO_ACCESS_TOKEN }}"
-          } -Body $body -ContentType "application/json";
+
 
       - uses: actions/checkout@v4
       - name: setup node.js
@@ -132,6 +120,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+  
+  auto-approve-stage-1:
+    if: startsWith(github.event.inputs.environment, 'production')
+    name: Auto approve job
+    needs: validate-flex-account
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto approve
+        shell: pwsh
+        run: |        
+          $url = "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/pending_deployments";
+          $body = @"
+          { "environment_ids": [ ${{ needs.validate-flex-account.outputs.environment_id }} ],
+            "state": "approved",
+            "comment": "Auto-approved for automation"
+          }
+          "@;
+          Invoke-RESTMethod -Uri $url -Method POST -Headers @{
+            Authorization = "Bearer ${{ secrets.REPO_ACCESS_TOKEN }}"
+          } -Body $body -ContentType "application/json";      
 
   deploy-flex-config:
     if: |
