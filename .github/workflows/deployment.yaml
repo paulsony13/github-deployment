@@ -33,25 +33,20 @@ concurrency:
   group: flex-deploy-${{ inputs.environment || github.event.inputs.environment }}
 
 jobs:
-
-  approval:
-    if: github.event.inputs.environment == 'production_us' ||  github.event.inputs.environment == 'production_uk'
+  validate-flex-account:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     steps:
-      - uses: trstringer/manual-approval@v1
+      - name: Request Approval
+        if: startsWith(github.event.inputs.environment, 'production')
+        uses: approvers/approval-action@v1
         with:
           secret: ${{ secrets.REPO_ACCESS_TOKEN }}
           approvers: paulsony13
           minimum-approvals: 1
           issue-title: "Deploying v1.3.5 to prod from staging"
           issue-body: "Please approve or deny the deployment of version v1.3.5."
-          exclude-workflow-initiator-as-approver: false
-  validate-flex-account:
-    needs: 
-      - approval
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    steps:
+          exclude-workflow-initiator-as-approver: false      
       - uses: actions/checkout@v4
       - name: setup node.js
         uses: actions/setup-node@v4
