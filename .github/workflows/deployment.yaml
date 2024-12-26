@@ -37,6 +37,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
+      - name: Set env
+        if: startsWith(github.event.inputs.environment, 'production')     
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV    
       - name: Request Approval
         if: startsWith(github.event.inputs.environment, 'production')
         uses: trstringer/manual-approval@v1
@@ -44,8 +47,8 @@ jobs:
           secret: ${{ secrets.REPO_ACCESS_TOKEN }}
           approvers: paulsony13
           minimum-approvals: 1
-          issue-title: "Deploying v1.3.5 to prod from staging"
-          issue-body: "Please approve or deny the deployment of version v1.3.5."
+          issue-title: "Deploying ${{ env.RELEASE_VERSION }} to ${{ github.event.inputs.environment }}"
+          issue-body: "Please approve or deny the deployment of version ${{ env.RELEASE_VERSION }}"
           exclude-workflow-initiator-as-approver: false      
       - uses: actions/checkout@v4
       - name: setup node.js
