@@ -132,7 +132,7 @@ jobs:
         run: |        
           $url = "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/pending_deployments";
           $body = @"
-          { "environment_ids": [ ${{ needs.validate-flex-account.outputs.environment_id }} ],
+          { "environment_ids": [ 5039058891 ],
             "state": "approved",
             "comment": "Auto-approved for automation"
           }
