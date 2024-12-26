@@ -28,20 +28,24 @@ concurrency:
   group: flex-deploy-${{ inputs.environment }}
 
 jobs:
-  approval:
+  # Single approval and secrets initialization
+  approval_and_init:
     runs-on: ubuntu-latest
     environment:
-      name: ${{ inputs.environment }}
-      url: ${{ github.event.workflow_run.html_url }} # Links approval back to workflow
-    permissions:
-      id-token: write
-      contents: read
+      name: ${{ inputs.environment }} # Attach to the specific environment
+      url: ${{ github.event.workflow_run.html_url }}
     steps:
-      - name: Wait for approval
-        run: echo "Waiting for approval to proceed"
+      - name: Await manual approval
+        run: echo "Manual approval granted for environment: ${{ inputs.environment }}"
+      - name: Export Environment Variables
+        run: |
+          echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
+          echo "INITIAL_RELEASE=${{ inputs.initial_release }}" >> $GITHUB_ENV
+          echo "OVERWRITE_CONFIG=${{ inputs.overwrite_config }}" >> $GITHUB_ENV
 
+  # Validation job
   validate-flex-account:
-    needs: approval
+    needs: approval_and_init
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
@@ -51,13 +55,12 @@ jobs:
         with:
           node-version: '18'
 
+  # Initial serverless release (if applicable)
   perform-initial-serverless-release:
     needs: validate-flex-account
-    if: inputs.initial_release == true
+    if: ${{ env.INITIAL_RELEASE == 'true' }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    env:
-      ENVIRONMENT: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -65,12 +68,11 @@ jobs:
         with:
           node-version: '18'
 
+  # Deploy packages
   deploy-packages:
     needs: validate-flex-account
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    env:
-      ENVIRONMENT: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -78,13 +80,11 @@ jobs:
         with:
           node-version: '18'
 
+  # Deploy Flex Config
   deploy-flex-config:
     needs: deploy-packages
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    env:
-      ENVIRONMENT: ${{ inputs.environment }}
-      OVERWRITE_CONFIG: ${{ inputs.initial_release || inputs.overwrite_config }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -92,6 +92,7 @@ jobs:
         with:
           node-version: '18'
 
+  # Deploy Release Plugin
   deploy-release-plugin:
     needs: validate-flex-account
     runs-on: ubuntu-latest
