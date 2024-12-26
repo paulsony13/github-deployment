@@ -1,12 +1,7 @@
-
 name: Deploy Flex
-run-name: "Deployed App: Flex ${{ inputs.environment || github.event.inputs.environment }}"
-# Within this file, FEATURE and END FEATURE blocks are used only by the remove-features script.
+run-name: "Deployed App: Flex ${{ inputs.environment }}"
 
 on:
-  # To run this workflow via automated triggers, see the .github/examples directory.
-
-  # Enables running this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       environment:
@@ -30,80 +25,75 @@ on:
         description: Overwrite config set by Admin UI Panel?
 
 concurrency:
-  group: flex-deploy-${{ inputs.environment || github.event.inputs.environment }}
+  group: flex-deploy-${{ inputs.environment }}
 
 jobs:
+  approval:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ github.event.workflow_run.html_url }} # Links approval back to workflow
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Wait for approval
+        run: echo "Waiting for approval to proceed"
+
   validate-flex-account:
+    needs: approval
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
-      - name: setup node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-  # When performing an initial release
-  # the serverless backend needs an initial deploy so
-  # the domain name can be pulled in for the terraform deploy
   perform-initial-serverless-release:
-    needs:
-      - validate-flex-account
-    if: |
-      (inputs.initial_release == true)
+    needs: validate-flex-account
+    if: inputs.initial_release == true
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
       ENVIRONMENT: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
-      - name: setup node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
   deploy-packages:
-    if: |
-      always() &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled')
+    needs: validate-flex-account
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
       ENVIRONMENT: ${{ inputs.environment }}
-    needs:
-      - validate-flex-account
     steps:
       - uses: actions/checkout@v4
-      - name: setup node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
   deploy-flex-config:
-    if: |
-      always() &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled')
-    environment: ${{ inputs.environment }}
+    needs: deploy-packages
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     env:
       ENVIRONMENT: ${{ inputs.environment }}
-      OVERWRITE_CONFIG: ${{ inputs.initial_release == true || inputs.overwrite_config == true }}
-    needs:
-      - deploy-packages
-      - validate-flex-account
+      OVERWRITE_CONFIG: ${{ inputs.initial_release || inputs.overwrite_config }}
     steps:
       - uses: actions/checkout@v4
-      - name: setup node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-
   deploy-release-plugin:
-    needs:
-      - validate-flex-account
+    needs: validate-flex-account
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
@@ -113,7 +103,7 @@ jobs:
       PLUGIN_FOLDER: plugin-flex-ts-template-v2
     steps:
       - uses: actions/checkout@v4
-      - name: setup node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
