@@ -35,6 +35,7 @@ concurrency:
 jobs:
 
   approval:
+    if: github.event.inputs.environment == 'production_us' ||  github.event.inputs.environment == 'production_uk'
     runs-on: ubuntu-latest
     steps:
       - uses: trstringer/manual-approval@v1
@@ -46,6 +47,8 @@ jobs:
           issue-body: "Please approve or deny the deployment of version v1.3.5."
           exclude-workflow-initiator-as-approver: false
   validate-flex-account:
+    needs: 
+      - approval
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
