@@ -36,7 +36,8 @@ jobs:
       url: ${{ github.event.workflow_run.html_url }}
     steps:
       - name: Await manual approval
-        run: echo "Manual approval granted for environment: ${{ inputs.environment }}"
+        run: |
+           echo "Manual approval granted for environment: ${{ inputs.environment }}"
       - name: Export Environment Variables
         run: |
           echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
