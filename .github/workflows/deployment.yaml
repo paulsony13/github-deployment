@@ -39,7 +39,7 @@ jobs:
     steps:
       - name: Request Approval
         if: startsWith(github.event.inputs.environment, 'production')
-        uses: approvers/approval-action@v1
+        uses: trstringer/manual-approval@v1
         with:
           secret: ${{ secrets.REPO_ACCESS_TOKEN }}
           approvers: paulsony13
