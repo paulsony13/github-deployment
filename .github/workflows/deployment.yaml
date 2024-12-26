@@ -37,6 +37,35 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
+
+      - name: Get Environment Id
+        id: environment-id
+        shell: pwsh
+        run: |
+          $environmentId = ""
+          $url = "https://api.github.com/repos/${{ github.repository }}/environments"
+          $response = Invoke-RestMethod -Uri $url -Method Get  -Headers @{
+            Authorization = "Bearer ${{ secrets.REPO_ACCESS_TOKEN }}"
+          }
+          if ($response){
+            # Find Environment Id...
+            foreach ($environment in $response.environments) {
+              if ($environment.name -eq "Prod"){
+                $environmentId = $environment.id
+                break
+              }
+            }
+          }
+          # Set output
+          echo "::set-output name=value::$(echo $environmentId)"
+  
+      - name: Show me Environment Id
+        run: |
+          echo "Environment Id for Prod is ${{ steps.environment-id.outputs.value }}"
+
+  
+  
+
       - name: Set env
         if: startsWith(github.event.inputs.environment, 'production')     
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV    
