@@ -10,8 +10,13 @@ on:
   workflow_dispatch:
     inputs:
       environment:
+        type: choice
         required: true
-        type: environment
+        options:
+          - staging_us
+          - staging_uk
+          - production_uk
+          - production_us
         description: "Environment to use for deployment"
       initial_release:
         required: true
