@@ -138,8 +138,22 @@ jobs:
   #           Authorization = "Bearer ${{ secrets.REPO_ACCESS_TOKEN }}"
   #         } -Body $body -ContentType "application/json";      
 
-  auto-approve-deployment:
+  auto-approve-deployment_job1:
+    if: startsWith(github.event.inputs.environment, 'production')
     needs: validate-flex-account
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Reusable Action
+        uses: paulsony13/github-deployment/.github/actions/auto-approve-action@develop
+        with:
+          environment: ${{ github.event.inputs.environment }}
+          repo_access_token: ${{ secrets.REPO_ACCESS_TOKEN }}
+
+  auto-approve-deployment_job2:
+    if: startsWith(github.event.inputs.environment, 'production')
+    needs:
+      - deploy-packages
+      - validate-flex-account
     runs-on: ubuntu-latest
     steps:
       - name: Call Reusable Action
