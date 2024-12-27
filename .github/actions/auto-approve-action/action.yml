@@ -7,9 +7,9 @@ inputs:
   repo_access_token:
     description: GitHub token for API access.
     required: true
-outputs:
-  environment_id:
-    description: The retrieved environment ID.
+# outputs:
+#   environment_id:
+#     description: The retrieved environment ID.
 runs:
   using: "composite"
   steps:
