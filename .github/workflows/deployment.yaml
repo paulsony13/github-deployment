@@ -38,30 +38,30 @@ jobs:
     environment: ${{ inputs.environment }}
     steps:
 
-      - name: Get Environment Id
-        id: environment-id
-        shell: pwsh
-        run: |
-          $environmentId = ""
-          $url = "https://api.github.com/repos/${{ github.repository }}/environments"
-          $response = Invoke-RestMethod -Uri $url -Method Get  -Headers @{
-            Authorization = "Bearer ${{ secrets.REPO_ACCESS_TOKEN }}"
-          }
-          if ($response){
-            # Find Environment Id...
-            foreach ($environment in $response.environments) {
-              if ($environment.name -eq "${{ github.event.inputs.environment }}"){
-                $environmentId = $environment.id
-                break
-              }
-            }
-          }
-          # Set output
-          echo "::set-output name=value::$(echo $environmentId)"
+      # - name: Get Environment Id
+      #   id: environment-id
+      #   shell: pwsh
+      #   run: |
+      #     $environmentId = ""
+      #     $url = "https://api.github.com/repos/${{ github.repository }}/environments"
+      #     $response = Invoke-RestMethod -Uri $url -Method Get  -Headers @{
+      #       Authorization = "Bearer ${{ secrets.REPO_ACCESS_TOKEN }}"
+      #     }
+      #     if ($response){
+      #       # Find Environment Id...
+      #       foreach ($environment in $response.environments) {
+      #         if ($environment.name -eq "${{ github.event.inputs.environment }}"){
+      #           $environmentId = $environment.id
+      #           break
+      #         }
+      #       }
+      #     }
+      #     # Set output
+      #     echo "::set-output name=value::$(echo $environmentId)"
   
-      - name: Show me Environment Id
-        run: |
-          echo "Environment Id for ${{ github.event.inputs.environment }} is ${{ steps.environment-id.outputs.value }}"
+      # - name: Show me Environment Id
+      #   run: |
+      #     echo "Environment Id for ${{ github.event.inputs.environment }} is ${{ steps.environment-id.outputs.value }}"
 
       # - name: Set env
       #   if: startsWith(github.event.inputs.environment, 'production')     
@@ -95,9 +95,6 @@ jobs:
     env:
       ENVIRONMENT: ${{ inputs.environment }}
     steps:
-
-
-
       - uses: actions/checkout@v4
       - name: setup node.js
         uses: actions/setup-node@v4
@@ -121,25 +118,35 @@ jobs:
         with:
           node-version: '18'
   
-  auto-approve-stage-1:
-    if: startsWith(github.event.inputs.environment, 'production')
-    name: Auto approve job
+  # auto-approve-stage-1:
+  #   if: startsWith(github.event.inputs.environment, 'production')
+  #   name: Auto approve job
+  #   needs: validate-flex-account
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Auto approve
+  #       shell: pwsh
+  #       run: |        
+  #         $url = "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/pending_deployments";
+  #         $body = @"
+  #         { "environment_ids": [ 5039058891 ],
+  #           "state": "approved",
+  #           "comment": "Auto-approved for automation"
+  #         }
+  #         "@;
+  #         Invoke-RESTMethod -Uri $url -Method POST -Headers @{
+  #           Authorization = "Bearer ${{ secrets.REPO_ACCESS_TOKEN }}"
+  #         } -Body $body -ContentType "application/json";      
+
+  auto-approve-deployment:
     needs: validate-flex-account
     runs-on: ubuntu-latest
     steps:
-      - name: Auto approve
-        shell: pwsh
-        run: |        
-          $url = "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/pending_deployments";
-          $body = @"
-          { "environment_ids": [ 5039058891 ],
-            "state": "approved",
-            "comment": "Auto-approved for automation"
-          }
-          "@;
-          Invoke-RESTMethod -Uri $url -Method POST -Headers @{
-            Authorization = "Bearer ${{ secrets.REPO_ACCESS_TOKEN }}"
-          } -Body $body -ContentType "application/json";      
+      - name: Call Reusable Action
+        uses: ../../actions/auto-approve.yml # Update this path to the reusable action
+        with:
+          environment: ${{ github.event.inputs.environment }}
+          repo_access_token: ${{ secrets.REPO_ACCESS_TOKEN }}
 
   deploy-flex-config:
     if: |
@@ -161,27 +168,7 @@ jobs:
         with:
           node-version: '18'
 
-  auto-approve-stage-2:
-    if: startsWith(github.event.inputs.environment, 'production')
-    needs:
-      - deploy-packages
-      - validate-flex-account
-    name: Auto approve job 2
-    runs-on: ubuntu-latest
-    steps:
-      - name: Auto approve
-        shell: pwsh
-        run: |        
-          $url = "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/pending_deployments";
-          $body = @"
-          { "environment_ids": [ 5039058891 ],
-            "state": "approved",
-            "comment": "Auto-approved for automation"
-          }
-          "@;
-          Invoke-RESTMethod -Uri $url -Method POST -Headers @{
-            Authorization = "Bearer ${{ secrets.REPO_ACCESS_TOKEN }}"
-          } -Body $body -ContentType "application/json";
+
   deploy-release-plugin:
     needs:
       - validate-flex-account
