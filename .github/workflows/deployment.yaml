@@ -143,7 +143,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Call Reusable Action
-        uses: ../../actions/auto-approve.yamlß # Update this path to the reusable action
+        uses: ./actions/auto-approve.yamlß # Update this path to the reusable action
         with:
           environment: ${{ github.event.inputs.environment }}
           repo_access_token: ${{ secrets.REPO_ACCESS_TOKEN }}
