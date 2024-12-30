@@ -199,3 +199,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
+  notify-slack:
+    if: always()
+    runs-on: ubuntu-latest
+    needs: 
+      - deploy-flex-config
+    steps:
+      - name: Slack notification to devops channel (success)
+        if: success()
+        run: echo "sucessfull"
+
+      - name: Slack notification to devops channel (failure)
+        if: failure()
+        run: echo "Failed !"
+         
