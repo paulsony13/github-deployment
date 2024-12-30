@@ -209,10 +209,10 @@ jobs:
       - deploy-flex-config
     steps:
       - name: Slack notification to devops channel (success)
-        if: success()
+        if: contains(needs.*.result, 'sucess')
         run: echo "sucessfull"
 
       - name: Slack notification to devops channel (failure)
-        if: failure()
+        if: contains(needs.*.result, 'failure')
         run: echo "Failed !"
          
