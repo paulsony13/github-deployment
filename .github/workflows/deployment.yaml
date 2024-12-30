@@ -206,8 +206,10 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     needs: 
-      - deploy-flex-config
       - validate-flex-account
+      - deploy-flex-config
+      - deploy-packages
+      
     steps:
       # Notify success if all dependent jobs succeed
       - name: Slack notification to devops channel (success)
