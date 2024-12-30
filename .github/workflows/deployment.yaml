@@ -113,6 +113,8 @@ jobs:
       - validate-flex-account
     steps:
       - uses: actions/checkout@v4
+      - name: Slack notification to devops channel (success)
+        run: echossss make faile here     
       - name: setup node.js
         uses: actions/setup-node@v4
         with:
