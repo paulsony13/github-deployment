@@ -207,8 +207,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: 
       - validate-flex-account
-      - deploy-flex-config
       - deploy-packages
+      - deploy-release-plugin
+      - deploy-flex-config
+            
       
     steps:
       # Notify success if all dependent jobs succeed
