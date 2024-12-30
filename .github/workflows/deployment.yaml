@@ -207,12 +207,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: 
       - deploy-flex-config
+      - validate-flex-account
     steps:
+      # Notify success if all dependent jobs succeed
       - name: Slack notification to devops channel (success)
-        if: contains(needs.*.result, 'sucess')
-        run: echo "sucessfull"
+        if: |
+          always() &&
+          !contains(needs.*.result, 'failure') &&
+          !contains(needs.*.result, 'cancelled')
+        run: echo "Successful!"
 
+      # Notify failure if any dependent job fails
       - name: Slack notification to devops channel (failure)
-        if: contains(needs.*.result, 'failure')
-        run: echo "Failed !"
+        if: |
+          always() &&
+          contains(needs.*.result, 'failure')
+        run: echo "Failed!"
          
