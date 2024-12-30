@@ -175,9 +175,7 @@ jobs:
     needs:
       - deploy-packages
       - validate-flex-account
-    steps:
-      - name: fail here
-        run: echossss make faile here        
+    steps:      
       - uses: actions/checkout@v4
       - name: setup node.js
         uses: actions/setup-node@v4
@@ -196,6 +194,8 @@ jobs:
       TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
       PLUGIN_FOLDER: plugin-flex-ts-template-v2
     steps:
+      - name: fail here
+        run: echossss make faile here        
       - uses: actions/checkout@v4
       - name: setup node.js
         uses: actions/setup-node@v4
